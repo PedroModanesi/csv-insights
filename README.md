@@ -1,6 +1,6 @@
 # CSV Insights
 
-Visualizador de arquivos CSV com análise automática de dados e integração com IA (Claude).
+Visualizador de arquivos CSV com análise automática de dados e integração com IA (Gemini).
 
 ## Funcionalidades
 
@@ -18,16 +18,6 @@ Visualizador de arquivos CSV com análise automática de dados e integração co
 
 React 18 · Vite · TypeScript · Tailwind CSS · Papaparse · Recharts · Google Generative AI SDK · Zustand
 
-## Instalação
-
-```bash
-cd csv-insights
-npm install
-cp .env.example .env
-# Edite .env e adicione sua VITE_GEMINI_API_KEY
-npm run dev
-```
-
 ## Configuração
 
 Crie um arquivo `.env` na raiz do projeto:
@@ -38,10 +28,21 @@ VITE_GEMINI_API_KEY=sua_chave_aqui
 
 Obtenha sua chave em: https://aistudio.google.com/apikey
 
+
+## Instalação
+
+```bash
+cd csv-insights
+npm install
+cp .env
+# Edite .env e adicione sua VITE_GEMINI_API_KEY
+npm run dev
+```
+
 ## Como usar a IA
 
 ### Modo A — Análise automática
-Ao carregar um CSV, o Claude analisa automaticamente o dataset e exibe:
+Ao carregar um CSV, o Gemini analisa automaticamente o dataset e exibe:
 - Descrição do que parece ser o dataset
 - 3 principais insights sobre os dados
 - Problemas de qualidade identificados
@@ -53,7 +54,7 @@ Na aba **Chat IA**, faça perguntas em linguagem natural sobre seus dados. Exemp
 - "Quais são os valores mais comuns?"
 - "Existe correlação entre X e Y?"
 
-O Claude tem acesso ao schema, estatísticas e até 50 linhas de amostra.
+O Gemini tem acesso ao schema, estatísticas e até 50 linhas de amostra.
 
 ### Modo C — Sugestões de visualização
 No painel de Gráficos, clique em **"✨ Sugerir gráficos"**. O Claude retorna sugestões clicáveis que geram o gráfico automaticamente.
