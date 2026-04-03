@@ -37,6 +37,11 @@ interface AIState {
   generatedCodeLang: CodeLanguage;
   codeError: string | null;
 
+  // ── New: anomaly fix ─────────────────────────────────────────────────
+  isFixingAnomalies: boolean;
+  fixedRows: Record<string, string>[] | null;
+  fixError: string | null;
+
   // ── Actions ──────────────────────────────────────────────────────────
   setIsAnalyzing: (v: boolean) => void;
   setAutoAnalysis: (analysis: DatasetAnalysis | null) => void;
@@ -67,10 +72,19 @@ interface AIState {
   setGeneratedCode: (code: string, lang: CodeLanguage) => void;
   setCodeError: (err: string | null) => void;
 
+  setIsFixingAnomalies: (v: boolean) => void;
+  setFixedRows: (rows: Record<string, string>[] | null) => void;
+  setFixError: (err: string | null) => void;
+  clearFix: () => void;
+
   resetAI: () => void;
 }
 
 export const useAIStore = create<AIState>((set) => ({
+  isFixingAnomalies: false,
+  fixedRows: null,
+  fixError: null,
+
   isAnalyzing: false,
   autoAnalysis: null,
   analysisError: null,
@@ -135,6 +149,12 @@ export const useAIStore = create<AIState>((set) => ({
   setGeneratedCode: (code, lang) => set({ generatedCode: code, generatedCodeLang: lang }),
   setCodeError: (err) => set({ codeError: err }),
 
+  // anomaly fix actions
+  setIsFixingAnomalies: (v) => set({ isFixingAnomalies: v }),
+  setFixedRows: (rows) => set({ fixedRows: rows }),
+  setFixError: (err) => set({ fixError: err }),
+  clearFix: () => set({ fixedRows: null, fixError: null }),
+
   resetAI: () => set({
     isAnalyzing: false,
     autoAnalysis: null,
@@ -157,5 +177,8 @@ export const useAIStore = create<AIState>((set) => ({
     generatedCode: '',
     generatedCodeLang: 'python',
     codeError: null,
+    isFixingAnomalies: false,
+    fixedRows: null,
+    fixError: null,
   }),
 }));

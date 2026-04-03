@@ -16,6 +16,12 @@ function StatCard({ header, stats }: { header: string; stats: ColumnStats }) {
             <span className="font-mono">{stats.mean.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span>
             <span className="text-gray-500 dark:text-gray-400">Mediana</span>
             <span className="font-mono">{stats.median.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span>
+            <span className="text-gray-500 dark:text-gray-400">Q1</span>
+            <span className="font-mono">{stats.q1.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span>
+            <span className="text-gray-500 dark:text-gray-400">Q3</span>
+            <span className="font-mono">{stats.q3.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span>
+            <span className="text-gray-500 dark:text-gray-400">IQR</span>
+            <span className="font-mono">{stats.iqr.toLocaleString('pt-BR', { maximumFractionDigits: 2 })}</span>
           </div>
         );
       case 'category':
@@ -84,9 +90,9 @@ export function SummaryStats() {
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">
+      <div className="stats-section-title">
         Estatísticas por Coluna
-      </h2>
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
         {headers.map(h => (
           columnStats[h] ? <StatCard key={h} header={h} stats={columnStats[h]} /> : null

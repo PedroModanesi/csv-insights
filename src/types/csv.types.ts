@@ -13,6 +13,9 @@ export interface NumericStats {
   mean: number;
   median: number;
   stdDev: number;
+  q1: number;
+  q3: number;
+  iqr: number;
   count: number;
   nullCount: number;
 }

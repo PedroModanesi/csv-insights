@@ -13,11 +13,11 @@ import { useAIStore } from './store/aiStore';
 import { useColumnTypes } from './hooks/useColumnTypes';
 
 const TABS = [
-  { id: 'insights', label: '✨ Insights' },
-  { id: 'table', label: '📋 Tabela' },
-  { id: 'charts', label: '📊 Gráficos' },
-  { id: 'chat', label: '💬 Chat IA' },
-  { id: 'advanced', label: '🤖 IA Avançada' },
+  { id: 'insights',  label: 'Insights'  },
+  { id: 'table',     label: 'Tabela'    },
+  { id: 'charts',    label: 'Gráficos'  },
+  { id: 'chat',      label: 'Chat IA'   },
+  { id: 'advanced',  label: 'IA Avç'    },
 ] as const;
 
 type TabId = typeof TABS[number]['id'];
@@ -29,21 +29,20 @@ function FileInfoBar() {
   if (!fileName) return null;
 
   return (
-    <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3">
-      <div className="flex items-center gap-3 text-sm">
-        <span className="text-2xl">📄</span>
-        <div>
-          <span className="font-semibold text-gray-800 dark:text-gray-100">{fileName}</span>
-          <span className="ml-3 text-gray-500 dark:text-gray-400">
-            {totalRows.toLocaleString('pt-BR')} linhas · {headers.length} colunas
-          </span>
-        </div>
+    <div className="file-info-bar phosphor-in">
+      <div className="file-info-left">
+        <span className="file-info-prompt">▸</span>
+        <span className="file-info-name">{fileName}</span>
+        <span className="file-info-sep">///</span>
+        <span className="file-info-meta">{totalRows.toLocaleString('pt-BR')} linhas</span>
+        <span className="file-info-sep">·</span>
+        <span className="file-info-meta">{headers.length} colunas</span>
       </div>
       <button
         onClick={() => { reset(); resetAI(); }}
-        className="text-sm text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+        className="file-info-remove"
       >
-        ✕ Remover
+        × REMOVER
       </button>
     </div>
   );
@@ -53,20 +52,20 @@ function TabContent({ tab }: { tab: TabId }) {
   switch (tab) {
     case 'insights':
       return (
-        <div className="space-y-6">
+        <div className="space-y-6 phosphor-in">
           <AiInsights />
           <SummaryStats />
         </div>
       );
     case 'table':
-      return <DataTable />;
+      return <div className="phosphor-in"><DataTable /></div>;
     case 'charts':
-      return <ChartPanel />;
+      return <div className="phosphor-in"><ChartPanel /></div>;
     case 'chat':
-      return <AiChat />;
+      return <div className="phosphor-in"><AiChat /></div>;
     case 'advanced':
       return (
-        <div className="space-y-6">
+        <div className="space-y-6 phosphor-in">
           <AiReport />
           <AiAnomalies />
           <AiCodeGen />
@@ -82,48 +81,62 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabId>('insights');
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
-            CSV Insights
-          </h1>
-          <p className="mt-1 text-gray-500 dark:text-gray-400 text-sm">
-            Visualizador de dados CSV com análise por IA
-          </p>
-        </div>
+    <div style={{ minHeight: '100vh', background: 'var(--void)' }}>
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px 64px' }}>
 
-        {/* Upload or file info */}
+        {/* ── Terminal Header ── */}
+        <header className="terminal-header phosphor-in">
+          <div className="terminal-header-left">
+            <div className="terminal-dots">
+              <span className="tdot tdot-red" />
+              <span className="tdot tdot-amber" />
+              <span className="tdot tdot-green" />
+            </div>
+            <div>
+              <h1 className="terminal-logo">
+                CSV<span>·</span>INSIGHTS
+              </h1>
+              <p className="terminal-subtitle">
+                <span className="prompt">▸ </span>
+                Visualizador de dados CSV com inteligência artificial
+              </p>
+            </div>
+          </div>
+          <div className="terminal-header-right">
+            <div className="sys-status">
+              <span className="sys-status-dot" />
+              SYS:ONLINE
+            </div>
+          </div>
+        </header>
+
+        {/* ── Upload or File Info ── */}
         {rawData.length === 0 ? (
-          <div className="max-w-2xl mx-auto">
+          <div style={{ maxWidth: '640px', margin: '0 auto' }} className="phosphor-in-d1">
             <DropZone />
           </div>
         ) : (
-          <FileInfoBar />
-        )}
+          <>
+            <FileInfoBar />
 
-        {/* Tab navigation + content */}
-        {rawData.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex gap-1 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
-              {TABS.map(t => (
+            {/* ── Tab Navigation ── */}
+            <nav className="tab-bar phosphor-in-d1">
+              {TABS.map((t, i) => (
                 <button
                   key={t.id}
                   onClick={() => setActiveTab(t.id)}
-                  className={`px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-colors border-b-2 -mb-px ${
-                    activeTab === t.id
-                      ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                      : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200'
-                  }`}
+                  className={`tab-btn ${activeTab === t.id ? 'tab-btn-active' : ''}`}
                 >
-                  {t.label}
+                  <span className="tab-num">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="tab-label">{t.label}</span>
                 </button>
               ))}
-            </div>
+            </nav>
+
             <TabContent tab={activeTab} />
-          </div>
+          </>
         )}
+
       </div>
     </div>
   );

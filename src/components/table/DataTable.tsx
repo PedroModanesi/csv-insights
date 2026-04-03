@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useCSVStore } from '../../store/csvStore';
 import { useAIStore } from '../../store/aiStore';
 import { usePagination } from '../../hooks/usePagination';
@@ -27,22 +27,23 @@ function HighlightText({ text, query }: { text: string; query: string }) {
 
 export function DataTable() {
   const {
-    rawData, headers, columnTypes, filteredData,
+    rawData, headers, columnTypes, filteredData, fileName,
     sortConfig, searchQuery, columnFilter,
     setFilteredData, setSortConfig, setSearchQuery,
   } = useCSVStore();
   const { anomalyRowIndices } = useAIStore();
   const { pageData } = usePagination();
 
-  // Build a Set of anomalous row objects for O(1) lookup during render
-  const anomalyRowSet = useMemo(() => {
-    if (!anomalyRowIndices.length) return new Set<CSVRow>();
-    const s = new Set<CSVRow>();
-    for (const idx of anomalyRowIndices) {
-      if (rawData[idx]) s.add(rawData[idx]);
-    }
-    return s;
-  }, [anomalyRowIndices, rawData]);
+  // Set of rawData indices flagged as anomalous — O(1) lookup
+  const anomalyIndexSet = useMemo(() => new Set(anomalyRowIndices), [anomalyRowIndices]);
+
+  // Map from row object reference → its rawData index, so we can look up
+  // rows that come from filteredData/pageData (which share references with rawData)
+  const rawDataIndexMap = useMemo(() => {
+    const m = new Map<CSVRow, number>();
+    rawData.forEach((row, i) => m.set(row, i));
+    return m;
+  }, [rawData]);
 
   // Apply search + column filter + sort
   useEffect(() => {
@@ -93,6 +94,26 @@ export function DataTable() {
     );
   };
 
+  const exportCSV = useCallback(() => {
+    const escapeCell = (v: string) => {
+      if (v.includes(',') || v.includes('"') || v.includes('\n')) {
+        return `"${v.replace(/"/g, '""')}"`;
+      }
+      return v;
+    };
+    const lines = [
+      headers.map(escapeCell).join(','),
+      ...filteredData.map(row => headers.map(h => escapeCell(row[h] ?? '')).join(',')),
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName ? `${fileName.replace(/\.csv$/i, '')}_filtrado.csv` : 'export.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [headers, filteredData, fileName]);
+
   const isNumericCol = useMemo(
     () => headers.reduce<Record<string, boolean>>((acc, h) => {
       acc[h] = columnTypes[h] === 'number';
@@ -115,6 +136,16 @@ export function DataTable() {
           className="flex-1 min-w-48 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <ColumnFilter />
+        <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+          {filteredData.length.toLocaleString('pt-BR')} / {rawData.length.toLocaleString('pt-BR')} linhas
+        </span>
+        <button
+          onClick={exportCSV}
+          className="px-3 py-1.5 text-xs bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors whitespace-nowrap"
+          title="Exportar dados filtrados como CSV"
+        >
+          ↓ Exportar CSV
+        </button>
       </div>
 
       {filteredData.length === 0 ? (
@@ -149,11 +180,11 @@ export function DataTable() {
                   <tr
                     key={i}
                     className={`border-t border-gray-100 dark:border-gray-700 transition-colors ${
-                      anomalyRowSet.has(row)
+                      anomalyIndexSet.has(rawDataIndexMap.get(row) ?? -1)
                         ? 'bg-amber-50 dark:bg-amber-900/20 border-l-2 border-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30'
                         : 'hover:bg-gray-50 dark:hover:bg-gray-800/40'
                     }`}
-                    title={anomalyRowSet.has(row) ? '⚠ Linha com anomalia detectada' : undefined}
+                    title={anomalyIndexSet.has(rawDataIndexMap.get(row) ?? -1) ? '⚠ Linha com anomalia detectada' : undefined}
                   >
                     {headers.map(h => (
                       <td

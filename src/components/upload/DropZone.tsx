@@ -14,7 +14,6 @@ export function DropZone() {
   const { parse, isLoading, progress, error } = useCSVParser(({ data, headers, error: parseError }) => {
     if (!parseError && data.length > 0) {
       setData(data, headers, '');
-      // Trigger AI analysis after a short delay to let state settle
       setTimeout(() => analyzeDataset(), 300);
     }
   });
@@ -22,9 +21,7 @@ export function DropZone() {
   const handleFile = useCallback((file: File) => {
     reset();
     resetAI();
-    // Store filename via the store after parse
     parse(file);
-    // Update filename directly
     useCSVStore.setState({ fileName: file.name });
   }, [parse, reset, resetAI]);
 
@@ -32,23 +29,23 @@ export function DropZone() {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    if (file && file.name.match(/\.(csv|xlsx|xls)$/i)) handleFile(file);
   }, [handleFile]);
 
   const onFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFile(file);
-    // Reset input so same file can be re-selected
     e.target.value = '';
   }, [handleFile]);
 
   return (
-    <div className="w-full">
+    <div className="dropzone-wrap">
       <div
-        className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors
-          ${isDragging ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20' : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500'}
-          ${isLoading ? 'pointer-events-none opacity-70' : ''}
-        `}
+        className={[
+          'dropzone',
+          isDragging  ? 'dropzone--active'  : '',
+          isLoading   ? 'dropzone--loading' : '',
+        ].join(' ')}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={onDrop}
@@ -61,43 +58,62 @@ export function DropZone() {
         <input
           ref={inputRef}
           type="file"
-          accept=".csv"
-          className="hidden"
+          accept=".csv,.xlsx,.xls"
+          style={{ display: 'none' }}
           onChange={onFileChange}
         />
 
         {isLoading ? (
-          <div className="space-y-4">
-            <div className="text-lg font-medium text-gray-700 dark:text-gray-300">
-              Processando arquivo...
+          <div className="dropzone-loading">
+            <div className="dropzone-loading-title">
+              <span className="prompt">$ </span>
+              PROCESSANDO ARQUIVO...
             </div>
-            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+            <div className="terminal-progress">
               <div
-                className="bg-blue-500 h-3 rounded-full transition-all duration-300"
+                className="terminal-progress-fill"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">{progress}%</div>
+            <div className="dropzone-loading-pct">{progress}%</div>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="text-5xl">📄</div>
-            <div className="text-xl font-semibold text-gray-700 dark:text-gray-200">
-              Arraste um arquivo CSV aqui
+          <div className="dropzone-idle">
+            <div className="dropzone-badge">
+              <span className="dropzone-badge-dot" />
+              SISTEMA PRONTO
             </div>
-            <div className="text-gray-500 dark:text-gray-400">
-              ou clique para selecionar
+
+            <div className="dropzone-title">INICIALIZAR ANÁLISE</div>
+
+            <div className="dropzone-hints">
+              <div className="dropzone-hint">
+                <span className="arrow">▸ </span>
+                Arraste um arquivo .CSV aqui
+              </div>
+              <div className="dropzone-hint">
+                <span className="arrow">▸ </span>
+                ou pressione o botão abaixo
+              </div>
             </div>
-            <div className="text-sm text-gray-400 dark:text-gray-500">
-              Suporta vírgula, ponto-e-vírgula e tab · Máx. 50MB
+
+            <button
+              className="dropzone-cta"
+              onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
+            >
+              [ SELECIONAR ARQUIVO ]
+            </button>
+
+            <div className="dropzone-meta">
+              CSV &nbsp;·&nbsp; XLSX &nbsp;·&nbsp; XLS &nbsp;·&nbsp; máx. <span>50MB</span>
             </div>
           </div>
         )}
       </div>
 
       {error && (
-        <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 text-sm">
-          {error}
+        <div className="dropzone-error">
+          ⚠ {error}
         </div>
       )}
     </div>

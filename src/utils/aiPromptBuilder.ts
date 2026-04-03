@@ -108,24 +108,27 @@ export function buildChatSystemPrompt(
     .map(h => `  - ${formatStats(h, stats[h])}`)
     .join('\n');
 
-  // Clean sample: only include useful columns, up to 30 rows
-  const cleanSample = sampleRows.slice(0, 30).map(row => {
+  // Send all rows to the AI (capped at 2000 to avoid token limits)
+  const MAX_ROWS = 2000;
+  const rowsToSend = sampleRows.slice(0, MAX_ROWS).map(row => {
     const cleaned: CSVRow = {};
     for (const h of usefulHeaders) cleaned[h] = row[h] ?? '';
     return cleaned;
   });
 
-  const sampleJson = JSON.stringify(cleanSample, null, 2);
+  const dataJson = JSON.stringify(rowsToSend, null, 2);
+  const truncatedNote = sampleRows.length > MAX_ROWS
+    ? `\nNOTA: Dataset tem ${totalRows} linhas; foram enviadas as primeiras ${MAX_ROWS} para análise.`
+    : '';
 
   return `Você é um assistente especialista em análise de dados. Responda SEMPRE em português brasileiro.
 
 INSTRUÇÕES:
 - Responda de forma direta e objetiva.
 - Use os dados e estatísticas abaixo para embasar suas respostas.
-- Se o usuário perguntar sobre um valor específico, busque na amostra de dados.
-- Se a pergunta exigir cálculo sobre todos os dados e a amostra for insuficiente, estime com base nas estatísticas e avise o usuário.
+- Busque valores específicos diretamente na tabela de dados quando perguntado.
 - Não invente dados que não estão no contexto.
-- Prefira texto simples. Use listas quando ajudar a clareza.
+- Prefira texto simples. Use listas quando ajudar a clareza.${truncatedNote}
 
 DATASET (${totalRows} linhas no total):
 
@@ -135,8 +138,8 @@ ${schemaLines}
 Estatísticas calculadas sobre todos os dados:
 ${statsLines}
 
-Amostra de dados (primeiras ${cleanSample.length} linhas):
-${sampleJson}`;
+Dados completos (${rowsToSend.length} linhas):
+${dataJson}`;
 }
 
 /**

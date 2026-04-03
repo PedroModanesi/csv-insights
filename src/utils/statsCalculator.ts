@@ -13,6 +13,17 @@ function median(sorted: number[]): number {
 }
 
 /**
+ * Calculates the p-th percentile (0–100) of a sorted numeric array.
+ */
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const idx = (p / 100) * (sorted.length - 1);
+  const lo = Math.floor(idx);
+  const hi = Math.ceil(idx);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+
+/**
  * Calculates standard deviation for a list of numbers.
  */
 function stdDev(values: number[], mean: number): number {
@@ -35,7 +46,11 @@ function calcNumericStats(values: string[]): NumericStats {
   const mean = count > 0 ? nums.reduce((s, v) => s + v, 0) / count : 0;
   const med = count > 0 ? median(nums) : 0;
 
-  return { type: 'number', min, max, mean, median: med, stdDev: stdDev(nums, mean), count, nullCount };
+  const q1 = count > 0 ? percentile(nums, 25) : 0;
+  const q3 = count > 0 ? percentile(nums, 75) : 0;
+  const iqr = q3 - q1;
+
+  return { type: 'number', min, max, mean, median: med, stdDev: stdDev(nums, mean), q1, q3, iqr, count, nullCount };
 }
 
 function calcCategoryStats(values: string[]): CategoryStats {
