@@ -18,15 +18,6 @@ Visualizador de arquivos CSV com análise automática de dados e integração co
 
 React 18 · Vite · TypeScript · Tailwind CSS · Papaparse · Recharts · Google Generative AI SDK · Zustand
 
-## Instalação
-
-```bash
-cd csv-insights
-npm install
-cp .env.example .env
-# Edite .env e adicione sua VITE_GEMINI_API_KEY
-npm run dev
-```
 
 ## Configuração
 
@@ -37,6 +28,18 @@ VITE_GEMINI_API_KEY=sua_chave_aqui
 ```
 
 Obtenha sua chave em: https://aistudio.google.com/apikey
+
+
+## Instalação
+
+```bash
+cd csv-insights
+npm install
+cp .env
+# Edite .env e adicione sua VITE_GEMINI_API_KEY
+npm run dev
+```
+
 
 ## Como usar a IA
 
